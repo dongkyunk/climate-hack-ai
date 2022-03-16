@@ -1,3 +1,4 @@
+import os
 import xarray as xr
 import numpy as np
 from ray.util.multiprocessing import Pool
@@ -10,13 +11,18 @@ dataset = xr.open_dataset(
 )
 
 times = dataset.get_index("time")
-# Use time only between 9am to 2pm
-times = [t for t in times if t.time() >= time(9, 0) and t.time() <= time(14, 0)]
+# Use time only between 9am to 5pm
+times = [t for t in times if t.time() >= time(9, 0) and t.time() <= time(17, 0)]
+chunk_num = 50
+chunked_times = np.array_split(times, chunk_num)
+def save_single_chunk(time_chunk, index):
+    if os.path.exists('f/data/climate_hack/chunk_{index}'):
+        return
+    data_slice = dataset.loc[{'time': time_chunk}]["data"].values
+    data_dict = {}
+    for i, time in enumerate(time_chunk):
+        data_dict[str(time)] = data_slice[i]
+    np.savez_compressed(f'/data/climate_hack/chunk_{index}', **data_dict)
 
-def save_single_row(time):
-    np.save(f'/data/climate_hack/{str(time)}.npy', dataset.sel(time=time)['data'])
-
-pool = Pool(14)
-pool.map(save_single_row, times)
-
-
+pool = Pool(8)
+pool.starmap(save_single_chunk, zip(chunked_times, range(len(chunked_times))))

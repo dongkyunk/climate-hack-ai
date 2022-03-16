@@ -9,28 +9,29 @@ from hydra.core.config_store import ConfigStore
 class NeptuneConfig:
     use_neptune: Optional[bool] = None
     project_name: str = "dongkyuk/climate-hack-ai"
-    exp_name: Optional[str] = "initial_exp"
-    tags : Optional[tuple]= ("baseline",)
+    exp_name: Optional[str] = "conv gru"
+    tags : Optional[tuple]= ("unet", "cnn")
 
 
 @dataclass
 class TrainerConfig:
     gpus: tuple = (0,1)
-    num_workers: int = 8 * len(gpus)
+    num_workers: int = 4 * len(gpus)
     seed: int = 42
     pin_memory: bool = True
     persistent_workers: bool = True
-    val_check_interval: float = 1
+    val_check_interval: float = 1000
 
     epoch: int = 1000
-    lr: float = 1e-4
-    train_batch_size: int = 2
-    val_batch_size: int = 2
+    lr: float = 1e-5
+    train_batch_size: int = 8 #16
+    val_batch_size: int = 8 #16
 
 
 @dataclass
 class PathConfig:
-    data_path: str = "/home/dongkyun/Desktop/Other/climate-hack-ai/data/satellite/EUMETSAT/SEVIRI_RSS/v3/eumetsat_seviri_hrv_uk.zarr"
+    data_dir: str = "/data/climate_hack"
+    xarr_dataset_path: str = "/home/dongkyun/Desktop/Other/climate-hack-ai/data/satellite/EUMETSAT/SEVIRI_RSS/v3/eumetsat_seviri_hrv_uk.zarr"
     save_dir: Optional[str] = "save"
 
 @dataclass
